@@ -1,13 +1,16 @@
 
-// [DONE] 1. fields in body
-// [DONE] 2. check if s3 exports file exists
-// 3. resample down
-// 4. add label, logo
-// 5. save to GEG/assets/products/ (repeat 3-6 for thumbnail too)
+// [DONE] fields in body
+// [DONE] check if s3 exports file exists
+// [DONE] resample down
+// [DONE] save to GEG/assets/ + products & thumbnails
+// [DONE] add logo
+// TODO: add label
 
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3();
 const sharp = require('sharp');
+sharp.cache(false);
+sharp.concurrency(1);
 
 const API_KEY = 'InstantLayout-apiKey-nr4nxwrrDccw44b3S3DD3Scx2Aalrx';
 const EXPORTS_BUCKET = 'exports.instantlayout.com';
@@ -63,7 +66,11 @@ async function checkFile(project, user) {
             Key: `${user}/${project}/${project}.png`
         };
         const originalImage = await s3.getObject(params).promise();
-        return await resample(project, user, originalImage);
+        const result = await resample(project, user, originalImage, 'products', 800);
+        if (result.successMessage) {
+            return await resample(project, user, originalImage, 'thumbnails', 400);
+        }
+        return result;
     } catch(error) {
         return {
             errorMessage: 'Error: ' + error,
@@ -74,47 +81,51 @@ async function checkFile(project, user) {
 
 
 
-async function resample(project, user, originalImage) {
-
-    return {
-        errorMessage: null,
-        successMessage: 'TESTING'
-    };
-
-
-
-    // try {
-    //     const buffer = await sharp(originalImage.Body).resize(PRODUCT_WIDTH).toBuffer();
-
-    //     return {
-    //         errorMessage: null,
-    //         successMessage: 'SUCCESS - AFTER RESIZE!!'
-    //     };
-
-
-    // TODO:
-    // const kabobFileName = project.toLowerCase().replace(/\s/g, '-');
-    // // Upload the thumbnail image to the destination bucket
-    // try {
-    //     const destparams = {
-    //         Bucket: dstBucket,
-    //         Key: dstKey,
-    //         Body: buffer,
-    //         ContentType: "image"
-    //     };
-
-    //     const putResult = await s3.putObject(destparams).promise();
-
-    // } catch (error) {
-    //     console.log(error);
-    //     return;
-    // }
-
-
-    // } catch (error) {
-    //     return {
-    //         errorMessage: 'Error: ' + error,
-    //         successMessage: null
-    //     };
-    // }
+async function resample(project, user, originalImage, folder, width) {
+    try {
+        const buffer = await sharp(originalImage.Body)
+            .resize(width)
+            .extend({
+                background: { r: 0, g: 0, b: 0, alpha: 1 },
+                bottom: width / 8,
+                left: 0,
+                right: 0,
+                top: 0
+            })
+            .composite([{
+                input: folder + '-brand.png',
+                left: 0,
+                top: width * 1.5
+            }])
+            .sharpen()
+            .jpeg({
+                quality: 95,
+                chromaSubsampling: '4:4:4'
+            })
+            .toBuffer();
+        const kabobFileName = project.toLowerCase().replace(/\s/g, '-') + '.jpg';
+        try {
+            const params = {
+                Bucket: GEG_BUCKET,
+                Key: 'assets/' + folder + '/' + kabobFileName,
+                Body: buffer,
+                ContentType: "image"
+            };
+            const putResult = await s3.putObject(params).promise();
+            return {
+                errorMessage: null,
+                successMessage: 'Export has been resized and saved.'
+            };
+        } catch (error) {
+            return {
+                errorMessage: 'Error: ' + error,
+                successMessage: null
+            };
+        }
+    } catch (error) {
+        return {
+            errorMessage: 'Error: ' + error,
+            successMessage: null
+        };
+    }
 }
