@@ -15,10 +15,6 @@ sharp.concurrency(1);
 const API_KEY = 'InstantLayout-apiKey-nr4nxwrrDccw44b3S3DD3Scx2Aalrx';
 const EXPORTS_BUCKET = 'exports.instantlayout.com';
 const GEG_BUCKET = 'greatearthgallery.com';
-const PRODUCT_WIDTH = 800;
-const PRODUCTS_PATH = 'assets/products';
-const THUMBNAIL_WIDTH = 400;
-const THUMBNAILS_PATH = 'assets/thumbnails';
 
 
 
