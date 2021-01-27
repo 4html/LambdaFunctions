@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="d5fc2a91-f604-4aaf-b547-253a97c9c7d8" name="LambdaLinux" url="http://ec2-52-40-193-42.us-west-2.compute.amazonaws.com">
+        <fileTransfer accessType="SFTP" host="ec2-52-40-193-42.us-west-2.compute.amazonaws.com" port="22" sshConfigId="b565c762-0aff-43cc-9e8b-da08caf9ed9e" sshConfig="ec2-user@ec2-52-40-193-42.us-west-2.compute.amazonaws.com:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
